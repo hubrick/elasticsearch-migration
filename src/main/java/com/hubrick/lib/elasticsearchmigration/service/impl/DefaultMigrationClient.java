@@ -16,10 +16,9 @@
 package com.hubrick.lib.elasticsearchmigration.service.impl;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.base.Charsets;
@@ -73,6 +72,8 @@ import org.elasticsearch.search.sort.SortOrder;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -139,6 +140,19 @@ public class DefaultMigrationClient implements MigrationClient {
 
     private ObjectMapper createObjectMapper() {
         final ObjectMapper objectMapper = new ObjectMapper();
+        final JavaTimeModule javaTimeModule = new JavaTimeModule();
+
+        javaTimeModule.addSerializer(Instant.class, new JsonSerializer<Instant>() {
+            @Override
+            public void serialize(Instant instant, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
+                DateTimeFormatter formatter = DateTimeFormatter
+                        .ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSX")
+                        .withZone(ZoneOffset.UTC);
+                String serializedInstant = formatter.format(instant);
+                jsonGenerator.writeString(serializedInstant);
+            }
+        });
+
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         objectMapper.configure(DeserializationFeature.READ_ENUMS_USING_TO_STRING, true);
         objectMapper.configure(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS, true);
@@ -149,7 +163,7 @@ public class DefaultMigrationClient implements MigrationClient {
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
 
         objectMapper.registerModule(new Jdk8Module());
-        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.registerModule(javaTimeModule);
 
         return objectMapper;
     }
