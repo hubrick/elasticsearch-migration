@@ -44,7 +44,7 @@
         <apache-commons-lang3.version>3.7</apache-commons-lang3.version>
         <apache-commons.io.version>2.4</apache-commons.io.version>
         <reflections.version>0.9.11</reflections.version>
-        <jackson.version>2.9.5</jackson.version>
+        <jackson.version>2.12.1</jackson.version>
         <json-path.version>2.3.0</json-path.version>
         <rest-assured.version>2.9.0</rest-assured.version>
         <lombok.version>1.18.0</lombok.version>
